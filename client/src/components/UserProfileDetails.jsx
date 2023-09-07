@@ -1,6 +1,8 @@
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { FaChevronDown } from "react-icons/fa6";
+import { Menus, signOutAction } from "../untils/helpers";
+import { Link } from "react-router-dom";
 
 function UserProfileDetails() {
   const user = useSelector((state) => state.user?.user);
@@ -32,6 +34,26 @@ function UserProfileDetails() {
         className="p-4 rounded-md flex items-center justify-center bg-secondary cursor-pointer"
       >
         <FaChevronDown className="text-primaryText" />
+      </motion.div>
+
+      <motion.div className="bg-secondary absolute top-16 right-0 px-4 py-3 rounded-xl shadow-md z-10 flex flex-col items-start justify-start gap-4 min-w-[225px]">
+        {Menus &&
+          Menus.map((menu) => (
+            <Link
+              to={menu.uri}
+              key={menu.id}
+              className="text-primaryText text-lg hover:bg-[256,256,256,0.05] px-2 py-1 w-full rounded-md"
+            >
+              {menu.name}
+            </Link>
+          ))}
+        <motion.p
+          onClick={signOutAction}
+          whileTap={{ scale: 0.9 }}
+          className="text-primaryText text-lg hover:bg-[256,256,256,0.05] px-2 py-1 w-full rounded-md cursor-pointer"
+        >
+          Sign Out
+        </motion.p>
       </motion.div>
     </div>
   );
