@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { Home } from "./container";
+import { Home, NewProject } from "./container";
 import { useEffect, useState } from "react";
 import { auth, db } from "./config/firebase.config";
 import { doc, setDoc } from "firebase/firestore";
@@ -44,6 +44,7 @@ function App() {
         <div className="w-screen h-screen flex items-start justify-start">
           <Routes>
             <Route path="/home/*" element={<Home />} />
+            <Route path="/newProject" element={<NewProject />} />
 
             {/* If router not matching */}
             <Route path="*" element={<Navigate to={"/home"} />} />
