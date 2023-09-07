@@ -4,10 +4,14 @@ import { UserAuthInput } from "../components";
 import { FaEnvelope, FaGithub } from "react-icons/fa6";
 import { MdPassword } from "react-icons/md";
 import { FcGoogle } from "react-icons/fc";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { signInWithGithub, signInWithGoogle } from "../untils/helpers";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "../config/firebase.config";
+import { fadeInOut } from "../animations";
 
 function SignUp() {
   const [email, setEmail] = useState("");
@@ -15,19 +19,47 @@ function SignUp() {
   const [getEmailValidationStatus, setGetEmailValidationStatus] =
     useState(false);
   const [isLogin, setIsLogin] = useState(false);
-
+  const [alert, setAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const createNewUser = async () => {
     if (getEmailValidationStatus) {
-      await createUserWithEmailAndPassword(auth, email, password).then(
-        (userCred) => {
+      await createUserWithEmailAndPassword(auth, email, password)
+        .then((userCred) => {
           if (userCred) {
             console.log(userCred);
           }
-        }
-      );
+        })
+        .catch((err) => console.log(err));
     }
   };
 
+  const loginWithEmailPassword = async () => {
+    if (getEmailValidationStatus) {
+      await signInWithEmailAndPassword(auth, email, password)
+        .then((userCred) => {
+          if (userCred) {
+            console.log(userCred);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          if (err.message.includes("user-not-found")) {
+            setAlert(true);
+            setAlertMessage("Invalid Id : User not found");
+          } else if (err.message.includes("wrong-password")) {
+            setAlert(true);
+            setAlertMessage("Password is incorrect");
+          } else {
+            setAlert(true);
+            setAlertMessage("Temporarity disabled due to many failed login");
+          }
+
+          setInterval(() => {
+            setAlert(false);
+          }, 4000);
+        });
+    }
+  };
   return (
     <div className="w-full py-6">
       <img
@@ -42,18 +74,18 @@ function SignUp() {
           {/* email */}
           <UserAuthInput
             lable="Email"
-            placeHolder="Email here"
+            placeHolder="Email"
             isPass={false}
             key="Email"
             setStateFunction={setEmail}
             Icon={FaEnvelope}
-            setGetEmailValidation={setGetEmailValidationStatus}
+            setGetEmailValidationStatus={setGetEmailValidationStatus}
           />
 
           {/* password */}
           <UserAuthInput
             lable="Password"
-            placeHolder="Password here"
+            placeHolder="Password"
             isPass={true}
             key="Password"
             setStateFunction={setPassword}
@@ -61,17 +93,30 @@ function SignUp() {
           />
 
           {/* aleart section  */}
+          <AnimatePresence>
+            {alert && (
+              <motion.p
+                key={"Alert Message"}
+                {...fadeInOut}
+                className="text-red-500"
+              >
+                {alertMessage}
+              </motion.p>
+            )}
+          </AnimatePresence>
 
           {/* login button  */}
-          {isLogin ? (
+          {!isLogin ? (
             <motion.div
+              onClick={loginWithEmailPassword}
               whileTap={{ scale: 0.9 }}
               className="flex items-center justify-center w-full py-3 rounded-xl hover:bg-emerald-400 cursor-pointer bg-emerald-500"
             >
-              <p className="text-xl text-white">Sign Up</p>
+              <p className="text-xl text-white">Login</p>
             </motion.div>
           ) : (
             <motion.div
+              onClick={createNewUser}
               whileTap={{ scale: 0.9 }}
               className="flex items-center justify-center w-full py-3 rounded-xl hover:bg-emerald-400 cursor-pointer bg-emerald-500"
             >
@@ -81,7 +126,7 @@ function SignUp() {
 
           {/* account text section  */}
 
-          {!isLogin ? (
+          {isLogin ? (
             <p className="text-primaryText flex items-center justify-center gap-3">
               Already Have an account !
               <span

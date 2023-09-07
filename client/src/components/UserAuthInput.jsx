@@ -8,7 +8,7 @@ function UserAuthInput({
   isPass,
   setStateFunction,
   Icon,
-  setGetEmailValidation,
+  setGetEmailValidationStatus,
 }) {
   const [value, setValue] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -17,14 +17,14 @@ function UserAuthInput({
   const handleTextChange = (e) => {
     setValue(e.target.value);
     setStateFunction(e.target.value);
-
     if (placeHolder === "Email") {
       const emailRegex = /^[^s@]+@[^\s@]+\.[^\s@]/;
       const status = emailRegex.test(value);
       setIsEmailValid(status);
-      setGetEmailValidation(status);
+      setGetEmailValidationStatus(status);
     }
   };
+
   return (
     <div className="flex flex-col items-start justify-start gap-1">
       <label className="text-sm text-gray-300">{lable}</label>
@@ -52,9 +52,9 @@ function UserAuthInput({
             className="cursor-pointer"
           >
             {showPass ? (
-              <FaEye className="text-text555 text-2xl" />
-            ) : (
               <FaEyeSlash className="text-text555 text-2xl" />
+            ) : (
+              <FaEye className="text-text555 text-2xl" />
             )}
           </motion.div>
         )}
