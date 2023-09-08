@@ -1,16 +1,47 @@
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { MdBookmark } from "react-icons/md";
+import { useEffect, useState } from "react";
 
 function Projects() {
   const projects = useSelector((state) => state.projects?.projects);
+  const searchTerm = useSelector((state) =>
+    state.searchTerm?.searchTerm ? state.searchTerm?.searchTerm : ""
+  );
+  const [filltered, setFilltered] = useState(null);
+
+  useEffect(() => {
+    if (searchTerm?.length > 0) {
+      setFilltered(
+        projects?.filter((project) => {
+          const lowerCaseItem = project?.title.toLowerCase();
+          return searchTerm
+            .split("")
+            .every((letter) => lowerCaseItem.includes(letter));
+        })
+      );
+    } else {
+      setFilltered(null);
+    }
+  }, [searchTerm]);
 
   return (
     <div className="w-full py-6 flex items-center justify-center gap-6 flex-wrap">
-      {projects &&
-        projects.map((project, index) => (
-          <ProjectCard key={project.id} project={project} index={index} />
-        ))}
+      {filltered ? (
+        <>
+          {filltered &&
+            filltered.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
+        </>
+      ) : (
+        <>
+          {projects &&
+            projects.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
+        </>
+      )}
     </div>
   );
 }
@@ -19,6 +50,10 @@ const ProjectCard = ({ project, index }) => {
   return (
     <motion.div
       key={index}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
       className="w-full cursor-pointer md:w-[450px] h-[375px] bg-secondary rounded-md p-4 flex flex-col items-center justify-center gap-4"
     >
       <div
