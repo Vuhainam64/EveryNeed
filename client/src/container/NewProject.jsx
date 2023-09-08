@@ -10,16 +10,19 @@ import { Logo } from "../assets";
 import { AnimatePresence, motion } from "framer-motion";
 import { MdCheck, MdEdit } from "react-icons/md";
 import { useSelector } from "react-redux";
+import { Alert, UserProfileDetails } from "../components";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../config/firebase.config";
 
 function NewProject() {
   const [html, setHtml] = useState("");
   const [css, setCss] = useState("");
   const [js, setJs] = useState("");
   const [output, setOutput] = useState("");
+  const [title, setTitle] = useState("Untitle");
+  const [alert, setAlert] = useState(false);
 
   const [isTitle, setIsTitle] = useState("");
-  const [title, setTitle] = useState("Untitle");
-
   const user = useSelector((state) => state.user.user);
 
   useEffect(() => {
@@ -41,11 +44,36 @@ function NewProject() {
     setOutput(combinedOutput);
   };
 
+  const saveProgram = async () => {
+    const id = `${Date.now()}`;
+    const _doc = {
+      id: id,
+      title: title,
+      html: html,
+      css: css,
+      js: js,
+      output: output,
+      user: user,
+    };
+
+    await setDoc(doc(db, "Projects", id), _doc)
+      .then((res) => {
+        setAlert(true);
+
+        setTimeout(() => {
+          setAlert(false);
+        }, 2000);
+      })
+      .catch((err) => console.log(err));
+  };
+
   return (
     <>
       <div className="w-screen h-screen flex flex-col items-start justify-start overflow-hidden">
         {/* alert section  */}
-
+        <AnimatePresence>
+          {alert && <Alert status={"Success"} alertMsg={"Project Saved..."} />}
+        </AnimatePresence>
         {/* bearer section  */}
         <header className="w-full flex items-center justify-between px-12 py-4">
           <div className="flex items-center justify-center gap-6">
@@ -110,6 +138,7 @@ function NewProject() {
                   )}
                 </AnimatePresence>
               </div>
+
               {/* follow */}
               <div className="flex items-center justify-center px-3 -mt-2 gap-2">
                 <p className="text-primaryText text-sm">
@@ -128,6 +157,19 @@ function NewProject() {
           </div>
 
           {/* user section  */}
+
+          {user && (
+            <div className="flex items-center justify-center gap-4">
+              <motion.button
+                onClick={saveProgram}
+                whileTap={{ scale: 0.9 }}
+                className="px-6 py-4 bg-primaryText cursor-pointer text-base text-primary font-semibold rounded-md"
+              >
+                Save
+              </motion.button>
+              <UserProfileDetails />
+            </div>
+          )}
         </header>
         {/* coding section  */}
         <div>
