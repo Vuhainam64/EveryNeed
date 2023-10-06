@@ -1,13 +1,14 @@
 function generateRandomFullName() {
   const lastNames = ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Võ", "Đặng", "Bùi", "Đỗ"];
+  const middleNames = ["Thị", "Hồng", "Quốc", "Văn", "Minh", "Diễm", "Nam", "Huy", "Thu", "Ngọc"];
   const firstNames = ["Văn", "Thanh", "Huy", "Thị", "Minh", "Hồng", "Nam", "Diễm", "Quốc", "Thu"];
   const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const randomMiddleName = middleNames[Math.floor(Math.random() * middleNames.length)];
   const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  return `${randomLastName} ${randomFirstName}`;
+  return `${randomLastName} ${randomMiddleName} ${randomFirstName}`;
 }
-
 function generateRandomUserData() {
-  const email = "thethanhdanh72";
+  const email = "huongdanng";
   const sdt = ""; // Số điện thoại mặc định
   const randomName = generateRandomFullName();
   const randomPhone = sdt ? sdt : "09" + Math.floor(10000000 + Math.random() * 90000000);
@@ -15,7 +16,6 @@ function generateRandomUserData() {
   const randomBirthday = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
   const randomArea = Math.floor(Math.random() * 2) + 3;
   const randomSex = Math.floor(Math.random() * 2);
-  
   const formData = new FormData();
   formData.append("jpost", JSON.stringify({
     header: {
@@ -28,10 +28,8 @@ function generateRandomUserData() {
       Sex: randomSex,
     },
   }));
-  
   return formData;
 }
-
 function sendRandomUserData() {
   const randomUserData = generateRandomUserData();
   const xhr = new XMLHttpRequest();
@@ -51,7 +49,12 @@ function sendRandomUserData() {
         sendSMS(phone, customerNo);
         const updatedFormData = generateUpdatedFormData(customerId, randomUserData);
         sendUpdatedData(updatedFormData);
-        console.log("Họ tên: ", name, "sdt: ", phone, "email: ", email);
+        var userInfo = {
+          "Họ tên": name,
+          "Số điện thoại": phone,
+          "Email": email
+        };
+        console.table(userInfo);
       } else {
         console.error("Lỗi trong phản hồi máy chủ:", response.MessageErrors);
       }
@@ -61,7 +64,6 @@ function sendRandomUserData() {
   };
   xhr.send(randomUserData);
 }
-
 function sendSMS(phone, customerNo) {
   const smsData = new FormData();
   smsData.append("Phone", phone);
@@ -77,7 +79,6 @@ function sendSMS(phone, customerNo) {
   };
   smsXhr.send(smsData);
 }
-
 function sendEmail(email, customerNo) {
   const emailData = new FormData();
   emailData.append("Email", email);
@@ -93,14 +94,12 @@ function sendEmail(email, customerNo) {
   };
   emailXhr.send(emailData);
 }
-
 function generateUpdatedFormData(customerId, originalFormData) {
   const jsonData = JSON.parse(originalFormData.get("jpost"));
   jsonData.header.CustomerId = customerId;
   originalFormData.set("jpost", JSON.stringify(jsonData));
   return originalFormData;
 }
-
 function sendUpdatedData(updatedFormData) {
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
@@ -113,5 +112,4 @@ function sendUpdatedData(updatedFormData) {
   };
   xhr.send(updatedFormData);
 }
-
 sendRandomUserData();
