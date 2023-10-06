@@ -7,56 +7,51 @@ function generateRandomFullName() {
 }
 
 function generateRandomUserData() {
-  const email = "xuanthuongnguyen19";
-  const sdt = "01232221333"; // Số điện thoại mặc định
-  var randomName = generateRandomFullName();
-  var randomPhone = sdt ? sdt : "08" + Math.floor(10000000 + Math.random() * 90000000);
-  var randomEmail = email + "+" + Math.floor(Math.random() * 1000) + "@gmail.com";
-  var randomBirthday = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
-  var randomArea = Math.floor(Math.random() * 2) + 3;
-  var randomSex = Math.floor(Math.random() * 2);
-  var formData = new FormData();
-  formData.append(
-    "jpost",
-    JSON.stringify({
-      header: {
-        CustomerId: 0,
-        CustomerName: randomName,
-        Phone: randomPhone,
-        Email: randomEmail,
-        BirthDay: randomBirthday.toISOString(),
-        Area: randomArea,
-        Sex: randomSex,
-      },
-    })
-  );
+  const email = "thethanhdanh72";
+  const sdt = ""; // Số điện thoại mặc định
+  const randomName = generateRandomFullName();
+  const randomPhone = sdt ? sdt : "09" + Math.floor(10000000 + Math.random() * 90000000);
+  const randomEmail = email + "+" + Math.floor(Math.random() * 1000) + "@gmail.com";
+  const randomBirthday = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
+  const randomArea = Math.floor(Math.random() * 2) + 3;
+  const randomSex = Math.floor(Math.random() * 2);
+  
+  const formData = new FormData();
+  formData.append("jpost", JSON.stringify({
+    header: {
+      CustomerId: 0,
+      CustomerName: randomName,
+      Phone: randomPhone,
+      Email: randomEmail,
+      BirthDay: randomBirthday.toISOString(),
+      Area: randomArea,
+      Sex: randomSex,
+    },
+  }));
+  
   return formData;
 }
 
 function sendRandomUserData() {
-  var randomUserData = generateRandomUserData();
-  var xhr = new XMLHttpRequest();
+  const randomUserData = generateRandomUserData();
+  const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
   xhr.onload = function () {
     if (xhr.status === 200) {
-      var response = JSON.parse(xhr.responseText);
+      const response = JSON.parse(xhr.responseText);
       if (response.Success && response.DataResult && response.DataResult.length > 0) {
-        var customerId = response.DataResult[0].CustomerId;
+        const customerId = response.DataResult[0].CustomerId;
         console.log("CustomerId từ máy chủ:", customerId);
-
-        // Lấy dữ liệu Họ tên, số điện thoại (sdt), và email từ randomUserData
-        var jsonData = JSON.parse(randomUserData.get("jpost"));
-        var fullName = jsonData.header.CustomerName;
-        var phone = jsonData.header.Phone;
-        var email = jsonData.header.Email;
-
-        // Log Họ tên, số điện thoại (sdt), và email
-        console.log("Họ tên:", fullName);
-        console.log("Số điện thoại:", phone);
-        console.log("Email:", email);
-
-        var nextRequestData = generateNextRequestData(customerId);
-        sendNextRequest(nextRequestData);
+        const customerNo = response.DataResult[0].CustomerNo;
+        const jsonData = JSON.parse(randomUserData.get("jpost"));
+        const name = jsonData.header.CustomerName;
+        const phone = jsonData.header.Phone;
+        const email = jsonData.header.Email;
+        sendEmail(email, customerNo);
+        sendSMS(phone, customerNo);
+        const updatedFormData = generateUpdatedFormData(customerId, randomUserData);
+        sendUpdatedData(updatedFormData);
+        console.log("Họ tên: ", name, "sdt: ", phone, "email: ", email);
       } else {
         console.error("Lỗi trong phản hồi máy chủ:", response.MessageErrors);
       }
@@ -67,25 +62,56 @@ function sendRandomUserData() {
   xhr.send(randomUserData);
 }
 
-function generateNextRequestData(customerId) {
-  var nextRequestData = generateRandomUserData();
-  var jsonData = JSON.parse(nextRequestData.get("jpost"));
-  jsonData.header.CustomerId = customerId;
-  nextRequestData.set("jpost", JSON.stringify(jsonData));
-  return nextRequestData;
+function sendSMS(phone, customerNo) {
+  const smsData = new FormData();
+  smsData.append("Phone", phone);
+  smsData.append("CustId", customerNo);
+  const smsXhr = new XMLHttpRequest();
+  smsXhr.open("POST", "https://member.katinat.vn/Home/SendSMS");
+  smsXhr.onload = function () {
+    if (smsXhr.status === 200) {
+      console.log("Phản hồi từ yêu cầu gửi SMS:", smsXhr.responseText);
+    } else {
+      console.error("Lỗi trong quá trình gửi SMS:", smsXhr.statusText);
+    }
+  };
+  smsXhr.send(smsData);
 }
 
-function sendNextRequest(nextRequestData) {
-  var xhr = new XMLHttpRequest();
+function sendEmail(email, customerNo) {
+  const emailData = new FormData();
+  emailData.append("Email", email);
+  emailData.append("CustId", customerNo);
+  const emailXhr = new XMLHttpRequest();
+  emailXhr.open("POST", "https://member.katinat.vn/Home/SendEmail");
+  emailXhr.onload = function () {
+    if (emailXhr.status === 200) {
+      console.log("Phản hồi từ yêu cầu gửi email:", emailXhr.responseText);
+    } else {
+      console.error("Lỗi trong quá trình gửi email:", emailXhr.statusText);
+    }
+  };
+  emailXhr.send(emailData);
+}
+
+function generateUpdatedFormData(customerId, originalFormData) {
+  const jsonData = JSON.parse(originalFormData.get("jpost"));
+  jsonData.header.CustomerId = customerId;
+  originalFormData.set("jpost", JSON.stringify(jsonData));
+  return originalFormData;
+}
+
+function sendUpdatedData(updatedFormData) {
+  const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
   xhr.onload = function () {
     if (xhr.status === 200) {
-      console.log("Phản hồi từ yêu cầu tiếp theo:", xhr.responseText);
+      console.log("Phản hồi từ yêu cầu với formData đã cập nhật:", xhr.responseText);
     } else {
-      console.error("Lỗi trong quá trình gửi yêu cầu tiếp theo:", xhr.statusText);
+      console.error("Lỗi trong quá trình gửi yêu cầu:", xhr.statusText);
     }
   };
-  xhr.send(nextRequestData);
+  xhr.send(updatedFormData);
 }
 
 sendRandomUserData();
