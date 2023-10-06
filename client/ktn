@@ -7,9 +7,11 @@ function generateRandomFullName() {
 }
 
 function generateRandomUserData() {
+  const email = "xuanthuongnguyen19";
+  const sdt = "01232221333"; // Số điện thoại mặc định
   var randomName = generateRandomFullName();
-  var randomPhone = "08" + Math.floor(10000000 + Math.random() * 90000000);
-  var randomEmail = "xuanthuongnguyen19+" + Math.floor(Math.random() * 1000) + "@gmail.com";
+  var randomPhone = sdt ? sdt : "08" + Math.floor(10000000 + Math.random() * 90000000);
+  var randomEmail = email + "+" + Math.floor(Math.random() * 1000) + "@gmail.com";
   var randomBirthday = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
   var randomArea = Math.floor(Math.random() * 2) + 3;
   var randomSex = Math.floor(Math.random() * 2);
