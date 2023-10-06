@@ -43,6 +43,18 @@ function sendRandomUserData() {
       if (response.Success && response.DataResult && response.DataResult.length > 0) {
         var customerId = response.DataResult[0].CustomerId;
         console.log("CustomerId từ máy chủ:", customerId);
+
+        // Lấy dữ liệu Họ tên, số điện thoại (sdt), và email từ randomUserData
+        var jsonData = JSON.parse(randomUserData.get("jpost"));
+        var fullName = jsonData.header.CustomerName;
+        var phone = jsonData.header.Phone;
+        var email = jsonData.header.Email;
+
+        // Log Họ tên, số điện thoại (sdt), và email
+        console.log("Họ tên:", fullName);
+        console.log("Số điện thoại:", phone);
+        console.log("Email:", email);
+
         var nextRequestData = generateNextRequestData(customerId);
         sendNextRequest(nextRequestData);
       } else {
