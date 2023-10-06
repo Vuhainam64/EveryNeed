@@ -1,0 +1,77 @@
+function generateRandomFullName() {
+  const lastNames = ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Võ", "Đặng", "Bùi", "Đỗ"];
+  const firstNames = ["Văn", "Thanh", "Huy", "Thị", "Minh", "Hồng", "Nam", "Diễm", "Quốc", "Thu"];
+  const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  return `${randomLastName} ${randomFirstName}`;
+}
+
+function generateRandomUserData() {
+  var randomName = generateRandomFullName();
+  var randomPhone = "08" + Math.floor(10000000 + Math.random() * 90000000);
+  var randomEmail = "xuanthuongnguyen19+" + Math.floor(Math.random() * 1000) + "@gmail.com";
+  var randomBirthday = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
+  var randomArea = Math.floor(Math.random() * 2) + 3;
+  var randomSex = Math.floor(Math.random() * 2);
+  var formData = new FormData();
+  formData.append(
+    "jpost",
+    JSON.stringify({
+      header: {
+        CustomerId: 0,
+        CustomerName: randomName,
+        Phone: randomPhone,
+        Email: randomEmail,
+        BirthDay: randomBirthday.toISOString(),
+        Area: randomArea,
+        Sex: randomSex,
+      },
+    })
+  );
+  return formData;
+}
+
+function sendRandomUserData() {
+  var randomUserData = generateRandomUserData();
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      var response = JSON.parse(xhr.responseText);
+      if (response.Success && response.DataResult && response.DataResult.length > 0) {
+        var customerId = response.DataResult[0].CustomerId;
+        console.log("CustomerId từ máy chủ:", customerId);
+        var nextRequestData = generateNextRequestData(customerId);
+        sendNextRequest(nextRequestData);
+      } else {
+        console.error("Lỗi trong phản hồi máy chủ:", response.MessageErrors);
+      }
+    } else {
+      console.error("Lỗi trong quá trình gửi yêu cầu:", xhr.statusText);
+    }
+  };
+  xhr.send(randomUserData);
+}
+
+function generateNextRequestData(customerId) {
+  var nextRequestData = generateRandomUserData();
+  var jsonData = JSON.parse(nextRequestData.get("jpost"));
+  jsonData.header.CustomerId = customerId;
+  nextRequestData.set("jpost", JSON.stringify(jsonData));
+  return nextRequestData;
+}
+
+function sendNextRequest(nextRequestData) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      console.log("Phản hồi từ yêu cầu tiếp theo:", xhr.responseText);
+    } else {
+      console.error("Lỗi trong quá trình gửi yêu cầu tiếp theo:", xhr.statusText);
+    }
+  };
+  xhr.send(nextRequestData);
+}
+
+sendRandomUserData();
