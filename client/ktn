@@ -28,34 +28,40 @@ function generateRandomUserData(setemail, setsdt) {
   }));
   return formData;
 }
-function sendRandomUserData(setemail, setsdt, count) {
-  for (let i = 0; i < count; i++) {
-    const randomUserData = generateRandomUserData(setemail, setsdt);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        const response = JSON.parse(xhr.responseText);
-        if (response.Success && response.DataResult && response.DataResult.length > 0) {
-          console.log("CustomerId từ máy chủ:", response.DataResult[0].CustomerId);
-          const jsonData = JSON.parse(randomUserData.get("jpost"));
-          const updatedFormData = generateUpdatedFormData(response.DataResult[0].CustomerId, randomUserData);
-          sendUpdatedData(updatedFormData);
-          var userInfo = {
-            "Họ tên": jsonData.header.CustomerName,
-            "Số điện thoại": jsonData.header.Phone,
-            "Email": jsonData.header.Email
-          };
-          console.table(userInfo);
+function sendRandomUserDataWithDelay(setemail, setsdt, count, delayMs) {
+  let currentIndex = 0;
+  function sendUserData() {
+    if (currentIndex < count) {
+      const randomUserData = generateRandomUserData(setemail, setsdt);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+          if (response.Success && response.DataResult && response.DataResult.length > 0) {
+            console.log("CustomerId từ máy chủ:", response.DataResult[0].CustomerId);
+            const jsonData = JSON.parse(randomUserData.get("jpost"));
+            const updatedFormData = generateUpdatedFormData(response.DataResult[0].CustomerId, randomUserData);
+            sendUpdatedData(updatedFormData);
+            var userInfo = {
+              "Họ tên": jsonData.header.CustomerName,
+              "Số điện thoại": jsonData.header.Phone,
+              "Email": jsonData.header.Email
+            };
+            console.table(userInfo);
+          } else {
+            console.error("Lỗi trong phản hồi máy chủ:", response.MessageErrors);
+          }
         } else {
-          console.error("Lỗi trong phản hồi máy chủ:", response.MessageErrors);
+          console.error("Lỗi trong quá trình gửi yêu cầu:", xhr.statusText);
         }
-      } else {
-        console.error("Lỗi trong quá trình gửi yêu cầu:", xhr.statusText);
-      }
-    };
-    xhr.send(randomUserData);
+        currentIndex++;
+        setTimeout(sendUserData, delayMs);
+      };
+      xhr.send(randomUserData);
+    }
   }
+  sendUserData();
 }
 function generateUpdatedFormData(customerId, originalFormData) {
   const jsonData = JSON.parse(originalFormData.get("jpost"));
@@ -75,4 +81,4 @@ function sendUpdatedData(updatedFormData) {
   };
   xhr.send(updatedFormData);
 }
-sendRandomUserData("vuhainam272", "", 2);
+sendRandomUserDataWithDelay("vuhainam272", "", 2,1000);
