@@ -82,3 +82,4 @@ function sendUpdatedData(updatedFormData) {
   xhr.send(updatedFormData);
 }
 sendRandomUserDataWithDelay("vuhainam272", "", 2,1000);
+//email + sdt nếu có + số user cần tạo + thời gian chờ mỗi s(nên để 1000=1s)
