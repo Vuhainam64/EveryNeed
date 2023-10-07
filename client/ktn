@@ -7,12 +7,10 @@ function generateRandomFullName() {
   const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
   return `${randomLastName} ${randomMiddleName} ${randomFirstName}`;
 }
-function generateRandomUserData() {
-  const email = "huongdanng";
-  const sdt = ""; // Số điện thoại mặc định
+function generateRandomUserData(setemail, setsdt) {
   const randomName = generateRandomFullName();
-  const randomPhone = sdt ? sdt : "09" + Math.floor(10000000 + Math.random() * 90000000);
-  const randomEmail = email + "+" + Math.floor(Math.random() * 1000) + "@gmail.com";
+  const randomPhone = setsdt ? setsdt : "08" + Math.floor(10000000 + Math.random() * 90000000);
+  const randomEmail = setemail + "+" + Math.floor(Math.random() * 1000) + "@gmail.com";
   const randomBirthday = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
   const randomArea = Math.floor(Math.random() * 2) + 3;
   const randomSex = Math.floor(Math.random() * 2);
@@ -30,29 +28,22 @@ function generateRandomUserData() {
   }));
   return formData;
 }
-function sendRandomUserData() {
-  const randomUserData = generateRandomUserData();
+function sendRandomUserData(setemail, setsdt) {
+  const randomUserData = generateRandomUserData(setemail, setsdt);
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
   xhr.onload = function () {
     if (xhr.status === 200) {
       const response = JSON.parse(xhr.responseText);
       if (response.Success && response.DataResult && response.DataResult.length > 0) {
-        const customerId = response.DataResult[0].CustomerId;
-        console.log("CustomerId từ máy chủ:", customerId);
-        const customerNo = response.DataResult[0].CustomerNo;
+        console.log("CustomerId từ máy chủ:", response.DataResult[0].CustomerId);
         const jsonData = JSON.parse(randomUserData.get("jpost"));
-        const name = jsonData.header.CustomerName;
-        const phone = jsonData.header.Phone;
-        const email = jsonData.header.Email;
-        sendEmail(email, customerNo);
-        sendSMS(phone, customerNo);
-        const updatedFormData = generateUpdatedFormData(customerId, randomUserData);
+        const updatedFormData = generateUpdatedFormData(response.DataResult[0].CustomerId, randomUserData);
         sendUpdatedData(updatedFormData);
         var userInfo = {
-          "Họ tên": name,
-          "Số điện thoại": phone,
-          "Email": email
+          "Họ tên": jsonData.header.CustomerName,
+          "Số điện thoại": jsonData.header.Phone,
+          "Email": jsonData.header.Email
         };
         console.table(userInfo);
       } else {
@@ -64,42 +55,13 @@ function sendRandomUserData() {
   };
   xhr.send(randomUserData);
 }
-function sendSMS(phone, customerNo) {
-  const smsData = new FormData();
-  smsData.append("Phone", phone);
-  smsData.append("CustId", customerNo);
-  const smsXhr = new XMLHttpRequest();
-  smsXhr.open("POST", "https://member.katinat.vn/Home/SendSMS");
-  smsXhr.onload = function () {
-    if (smsXhr.status === 200) {
-      console.log("Phản hồi từ yêu cầu gửi SMS:", smsXhr.responseText);
-    } else {
-      console.error("Lỗi trong quá trình gửi SMS:", smsXhr.statusText);
-    }
-  };
-  smsXhr.send(smsData);
-}
-function sendEmail(email, customerNo) {
-  const emailData = new FormData();
-  emailData.append("Email", email);
-  emailData.append("CustId", customerNo);
-  const emailXhr = new XMLHttpRequest();
-  emailXhr.open("POST", "https://member.katinat.vn/Home/SendEmail");
-  emailXhr.onload = function () {
-    if (emailXhr.status === 200) {
-      console.log("Phản hồi từ yêu cầu gửi email:", emailXhr.responseText);
-    } else {
-      console.error("Lỗi trong quá trình gửi email:", emailXhr.statusText);
-    }
-  };
-  emailXhr.send(emailData);
-}
 function generateUpdatedFormData(customerId, originalFormData) {
   const jsonData = JSON.parse(originalFormData.get("jpost"));
   jsonData.header.CustomerId = customerId;
   originalFormData.set("jpost", JSON.stringify(jsonData));
   return originalFormData;
 }
+
 function sendUpdatedData(updatedFormData) {
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://member.katinat.vn/Home/AddOrUpdateCustomer");
@@ -112,4 +74,4 @@ function sendUpdatedData(updatedFormData) {
   };
   xhr.send(updatedFormData);
 }
-sendRandomUserData();
+sendRandomUserData("vuhainam6423", "");
